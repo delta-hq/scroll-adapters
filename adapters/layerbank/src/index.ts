@@ -21,13 +21,13 @@ interface BlockData {
 }
 
 type OutputDataSchemaRow = {
+  protocol: string;
+  date: number;
   block_number: number;
-  timestamp: number;
   user_address: string;
-  token_address: string;
-  token_balance: bigint;
-  token_symbol: string; //token symbol should be empty string if it is not available
-  usd_price: number; //assign 0 if not available
+  market: string;
+  supply_token: bigint;
+  borrow_token: bigint;
 };
 
 export const getUserTVLByBlock = async (blocks: BlockData) => {
@@ -55,23 +55,19 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
   await updateBorrowBalances(states);
 
   states.forEach((state) => {
-    const amount = state.lentAmount - state.borrowAmount;
-
-    if (bigMath.abs(amount) < 1) return;
-
     const marketInfo = marketInfos.find(
       (mi) => mi.underlyingAddress == state.token.toLowerCase()
     );
 
     // Accumulate CSV row data
     csvRows.push({
+      protocol: "Layerbank",
+      date: blocks.blockTimestamp,
       block_number: blocks.blockNumber,
-      timestamp: blocks.blockTimestamp,
       user_address: state.account,
-      token_address: state.token,
-      token_balance: amount,
-      token_symbol: marketInfo?.underlyingSymbol ?? "",
-      usd_price: 0,
+      market: state.token,
+      supply_token: state.lentAmount,
+      borrow_token: state.borrowAmount,
     });
   });
 
