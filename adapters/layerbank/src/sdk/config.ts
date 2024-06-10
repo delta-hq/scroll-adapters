@@ -16,7 +16,7 @@ export const SUBGRAPH_URLS = {
 
 export const RPC_URLS = {
   [CHAINS.SCROLL]:
-    "https://scroll-mainnet.blastapi.io/0f113c5d-4147-4d60-b20f-5915468a24c8",
+    "https://scroll-mainnet.blastapi.io/cf50a7c9-e512-45ac-ae1d-d319f1a34f06",
 };
 
 export const WETH_ADDRESS = {
