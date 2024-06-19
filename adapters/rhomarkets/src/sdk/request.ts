@@ -31,12 +31,9 @@ query ($limit: Int, $offset: Int, $blockNumber: Int) {
 export async function fetchGraphQLData(
   blockNumber: number
 ): Promise<ProtocalData[]> {
-  //   limit: number,
-  //   offset: number,
-  // data(block: { number: ${blockNumber} }) {
   const query = `
-    query RHO_MARKETS {
-      data {
+      query RHO_MARKETS {
+        data(blockNumber: ${blockNumber}) {
           timestamp
           block_number
           user_address
