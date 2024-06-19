@@ -3,7 +3,7 @@ import { write } from "fast-csv";
 import { getUserTVLByBlock, readBlocksFromCSV } from "./sdk";
 import path from "path";
 
-const filePath = path.join(process.cwd(), "blocks.csv");
+const filePath = path.join(process.cwd(), "hourly_blocks.csv");
 
 readBlocksFromCSV(filePath)
   .then(async (blocks: any[]) => {
