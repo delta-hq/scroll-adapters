@@ -75,19 +75,19 @@ export async function fetchGraphQLData(
   let moreDataAvailable = true;
   let lastId = "";
 
-  // while (moreDataAvailable) {
-  const { accounts: batchData, lastId: currentLastId } =
-    await fetchSubgraphData(totalLimit, lastId, blockNumber, url);
+  while (moreDataAvailable) {
+    const { accounts: batchData, lastId: currentLastId } =
+      await fetchSubgraphData(totalLimit, lastId, blockNumber, url);
 
-  lastId = currentLastId;
-  allData = allData.concat(batchData);
+    lastId = currentLastId;
+    allData = allData.concat(batchData);
 
-  if (batchData.length < totalLimit) {
-    moreDataAvailable = false;
-  } else {
-    fetchOffset += totalLimit;
+    if (batchData.length < totalLimit) {
+      moreDataAvailable = false;
+    } else {
+      fetchOffset += totalLimit;
+    }
   }
-  // }
 
   // Check if data is returned
   if (allData) {
