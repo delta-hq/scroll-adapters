@@ -1,3 +1,6 @@
+import { zeroAddress } from "viem";
+import { CHAINS, PROTOCOLS, SUBGRAPH_URLS } from "./config";
+
 interface ProtocalData {
   timestamp: number;
   block_number: number;
@@ -14,57 +17,118 @@ interface GraphQLResponse {
   errors?: any[];
 }
 
-const query = `
-query ($limit: Int, $offset: Int, $blockNumber: Int) {
-    data(first: $limit, skip: $offset, block: { number: $blockNumber }) {
-      timestamp
-      block_number
-      user_address
-      market
-      supply_token
-      borrow_token
+// Helper function to fetch data from Subgraph
+export async function fetchSubgraphData(
+  limit: number,
+  lastId: string,
+  blockNumber: number,
+  url: string
+) {
+  const query = `
+      query MyQuery {
+        accounts(block: {number: ${blockNumber}}, first: ${limit}, where: { id_gt: "${lastId}" }, orderBy: id) {
+          id
+          tokens {
+            cTokenBalance
+            storedBorrowBalance
+            totalUnderlyingBorrowed
+            totalUnderlyingSupplied
+            accrualBlockNumber
+            market {
+              id
+              underlyingAddress
+              symbol
+              underlyingSymbol
+              blockTimestamp
+              underlyingDecimals
+            }
+          }
+        }
+      }
+    `;
+
+  let response = await fetch(url, {
+    method: "POST",
+    body: JSON.stringify({ query }),
+    headers: { "Content-Type": "application/json" },
+  });
+
+  const { data } = await response.json();
+
+  return {
+    accounts: data?.accounts || [],
+    lastId: data?.accounts[data?.accounts.length - 1].id || "",
+  };
+}
+
+export async function fetchGraphQLData(
+  blockNumber: number,
+  chainId: CHAINS,
+  protocol: PROTOCOLS
+): Promise<ProtocalData[]> {
+  const url = SUBGRAPH_URLS[chainId][protocol].url;
+  const limit = Infinity;
+  const offset = 0;
+
+  const totalLimit = 1000; // Adjust total fetch limit if needed
+  let fetchOffset = 0;
+  let allData: any[] = [];
+  let moreDataAvailable = true;
+  let lastId = "";
+
+  let count = 0;
+
+  while (moreDataAvailable) {
+    const { accounts: batchData, lastId: currentLastId } =
+      await fetchSubgraphData(totalLimit, lastId, blockNumber, url);
+
+    lastId = currentLastId;
+    allData = allData.concat(batchData);
+
+    count++;
+
+    if (batchData.length < totalLimit) {
+      moreDataAvailable = false;
+    } else {
+      fetchOffset += totalLimit;
     }
   }
 
-`;
+  // Check if data is returned
+  if (allData) {
+    // Process and transform the data
+    const flatData = allData
+      .flatMap((account) =>
+        account.tokens.map(
+          (token: {
+            underlyingDecimals: any;
+            market: { blockTimestamp: any; id: any };
+            accrualBlockNumber: any;
+            cTokenBalance: any;
+            storedBorrowBalance: any;
+          }) => ({
+            timestamp: Number(token.market.blockTimestamp),
+            block_number: token.accrualBlockNumber,
+            user_address: account.id,
+            market: token.market.id,
+            supply_token: Number(token.cTokenBalance),
+            borrow_token: Number(token.storedBorrowBalance),
+          })
+        )
+      )
+      .filter(
+        (item) =>
+          (item.supply_token > 0 || item.borrow_token > 0) &&
+          item.user_address !== zeroAddress
+      )
+      .sort((a, b) => b.block_number - a.block_number);
 
-export async function fetchGraphQLData(
-  blockNumber: number
-): Promise<ProtocalData[]> {
-  const query = `
-      query RHO_MARKETS {
-        data(blockNumber: ${blockNumber}) {
-          timestamp
-          block_number
-          user_address
-          market
-          supply_token
-          borrow_token
-        }
-      }
-    
-    `;
-
-  try {
-    const response = await fetch(
-      "https://drgstmbns1.execute-api.us-east-1.amazonaws.com/default/RhoMarketPoints",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ query }),
-      }
-    );
-
-    const responseData: GraphQLResponse = await response.json();
-    if (responseData.errors) {
-      console.error("GraphQL errors:", responseData.errors);
-      return [];
+    if (!offset && !limit) {
+      return flatData; // Return all data
+    } else {
+      return flatData.slice(offset, offset + limit); // Apply pagination
     }
-    return responseData.data.data;
-  } catch (error) {
-    console.error("Error fetching data:", error);
+  } else {
     return [];
   }
 }
