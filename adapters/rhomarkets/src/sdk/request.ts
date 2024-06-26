@@ -1,3 +1,4 @@
+import { zeroAddress } from "viem";
 import { CHAINS, PROTOCOLS, SUBGRAPH_URLS } from "./config";
 
 interface ProtocalData {
@@ -103,23 +104,25 @@ export async function fetchGraphQLData(
             underlyingDecimals: any;
             market: { blockTimestamp: any; id: any };
             accrualBlockNumber: any;
-            totalUnderlyingSupplied: any;
-            totalUnderlyingBorrowed: any;
+            cTokenBalance: any;
+            storedBorrowBalance: any;
           }) => ({
             timestamp: Number(token.market.blockTimestamp),
             block_number: token.accrualBlockNumber,
             user_address: account.id,
             market: token.market.id,
-            supply_token: Number(token.totalUnderlyingSupplied),
-            borrow_token: Number(token.totalUnderlyingBorrowed),
-            decimals: Number(token.underlyingDecimals),
+            supply_token: Number(token.cTokenBalance),
+            borrow_token: Number(token.storedBorrowBalance),
           })
         )
       )
+      .filter(
+        (item) =>
+          (item.supply_token > 0 || item.borrow_token > 0) &&
+          item.user_address !== zeroAddress
+      )
       .sort((a, b) => b.block_number - a.block_number);
 
-    console.log("flatData.length ", flatData.length);
-    
     if (!offset && !limit) {
       return flatData; // Return all data
     } else {

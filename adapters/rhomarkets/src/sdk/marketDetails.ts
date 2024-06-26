@@ -6,6 +6,7 @@ import ltokenAbi from "./abi/ltoken.abi";
 
 export interface MarketInfo {
   address: string;
+  decimals: number;
   underlyingAddress: string;
   underlyingSymbol: string;
   exchangeRateStored: bigint;
@@ -29,6 +30,8 @@ export const getMarketInfos = async (
   const marketAddresses: `0x${string}`[] =
     ((await core.read.getAllMarkets()) as any) || [];
 
+  console.log("marketAddresses ", marketAddresses);
+
   const markets = marketAddresses.map((m) =>
     getContract({
       address: m,
@@ -42,6 +45,14 @@ export const getMarketInfos = async (
       address: m.address,
       abi: m.abi,
       functionName: "underlying",
+    })) as any,
+  });
+
+  const decimalResults = await publicClient.multicall({
+    contracts: markets.map((m) => ({
+      address: m.address,
+      abi: m.abi,
+      functionName: "decimals",
     })) as any,
   });
 
@@ -83,6 +94,7 @@ export const getMarketInfos = async (
     marketInfos.push({
       address: marketAddress,
       underlyingAddress,
+      decimals: (decimalResults[i].result as number) || 0,
       underlyingSymbol: (underlyingSymbolResults[i].result as any) || "ETH",
       exchangeRateStored: BigInt(
         exchangeRateResults[i].status === "success"

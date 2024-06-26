@@ -3,7 +3,13 @@ import csv from "csv-parser";
 import { scroll } from "viem/chains";
 import { fetchGraphQLData } from "./request";
 import { getMarketInfos } from "./marketDetails";
-import { createPublicClient, extractChain, formatUnits, http } from "viem";
+import {
+  createPublicClient,
+  extractChain,
+  formatUnits,
+  http,
+  zeroAddress,
+} from "viem";
 import { CHAINS, PROTOCOLS, RPC_URLS } from "./config";
 import ltokenAbi from "./abi/ltoken.abi";
 
@@ -43,6 +49,7 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
     marketsMapping[marketInfo.address] = {
       address: marketInfo.address,
       exchangeRate: marketInfo.exchangeRateStored,
+      decimals: marketInfo.decimals,
     };
   }
 
@@ -100,28 +107,36 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
         (((supplyBalanceResults[j]?.result as bigint) || 0n) *
           marketsMapping[subStates[j].market].exchangeRate) /
           10n ** 18n,
-        subStates[j].decimals
+        marketsMapping[subStates[j].market].decimals
       );
 
-      console.log(
-        `user: ${subStates[j].user_address} supply: ${subStates[j].supply_token} borrowed: ${subStates[j].borrow_token}`
-      );
+      if (
+        subStates[j].user_address.toLowerCase() ===
+        "0x5fa5fbe3365d4317fbaa6df9b64f2262efdc771e".toLowerCase()
+      ) {
+        console.log(
+          "marketsMapping[subStates[j].market].decimals ",
+          marketsMapping[subStates[j].market].decimals
+        );
+      }
+
+      // console.log(
+      //   `user: ${subStates[j].user_address} supply: ${subStates[j].supply_token} borrowed: ${subStates[j].borrow_token}`
+      // );
     }
   }
 
-  const csvRows: OutputDataSchemaRow[] = newStates
-    .filter((item) => item.supply_token > 0 || item.borrow_token > 0)
-    .map((item) => {
-      return {
-        protocol: "RhoMarkets",
-        date: blocks.blockTimestamp,
-        block_number: blocks.blockNumber,
-        user_address: item.user_address,
-        market: item.market,
-        supply_token: item.supply_token,
-        borrow_token: item.borrow_token,
-      };
-    });
+  const csvRows: OutputDataSchemaRow[] = newStates.map((item) => {
+    return {
+      protocol: "RhoMarkets",
+      date: blocks.blockTimestamp,
+      block_number: blocks.blockNumber,
+      user_address: item.user_address,
+      market: item.market,
+      supply_token: item.supply_token,
+      borrow_token: item.borrow_token,
+    };
+  });
 
   return csvRows.slice(0, 1000);
 };
