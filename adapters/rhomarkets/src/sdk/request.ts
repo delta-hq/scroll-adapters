@@ -56,7 +56,7 @@ export async function fetchSubgraphData(
 
   return {
     accounts: data?.accounts || [],
-    lastId: data?.data?.accounts[data?.data?.accounts.length - 1].id || "",
+    lastId: data?.accounts[data?.accounts.length - 1].id || "",
   };
 }
 
@@ -75,19 +75,23 @@ export async function fetchGraphQLData(
   let moreDataAvailable = true;
   let lastId = "";
 
-  // while (moreDataAvailable) {
-  const { accounts: batchData, lastId: currentLastId } =
-    await fetchSubgraphData(totalLimit, lastId, blockNumber, url);
+  let count = 0;
 
-  lastId = currentLastId;
-  allData = allData.concat(batchData);
+  while (moreDataAvailable) {
+    const { accounts: batchData, lastId: currentLastId } =
+      await fetchSubgraphData(totalLimit, lastId, blockNumber, url);
 
-  if (batchData.length < totalLimit) {
-    moreDataAvailable = false;
-  } else {
-    fetchOffset += totalLimit;
+    lastId = currentLastId;
+    allData = allData.concat(batchData);
+
+    count++;
+
+    if (batchData.length < totalLimit) {
+      moreDataAvailable = false;
+    } else {
+      fetchOffset += totalLimit;
+    }
   }
-  // }
 
   // Check if data is returned
   if (allData) {
@@ -114,7 +118,9 @@ export async function fetchGraphQLData(
       )
       .sort((a, b) => b.block_number - a.block_number);
 
-    if (limit === Infinity) {
+    console.log("flatData.length ", flatData.length);
+    
+    if (!offset && !limit) {
       return flatData; // Return all data
     } else {
       return flatData.slice(offset, offset + limit); // Apply pagination

@@ -52,20 +52,15 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
   });
 
   console.log(`Will update all borrow balances for ${newStates.length} states`);
-  for (var i = 0; i < newStates.length; i += 500) {
+  for (var i = 0; i < newStates.length; i += 1000) {
     const start = i;
-    const end = i + 500;
+    const end = i + 1000;
     var subStates = newStates.slice(start, end);
     console.log(`Updating borrow balances for ${start} - ${end}`);
 
     let borrowBalanceResults = await publicClient.multicall({
       contracts: subStates
         .map((m) => {
-          // if (!m.market || !m.user_address) {
-          console.log("m.market ", m.market);
-          console.log("m.user_address ", m.user_address);
-          // }
-
           return [
             {
               address: m.market,
@@ -82,11 +77,6 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
     let supplyBalanceResults = await publicClient.multicall({
       contracts: subStates
         .map((m) => {
-          // if (!m.market || !m.user_address) {
-          console.log("m.market ", m.market);
-          console.log("m.user_address ", m.user_address);
-          // }
-
           return [
             {
               address: m.market,
@@ -112,16 +102,16 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
           10n ** 18n,
         subStates[j].decimals
       );
+
+      console.log(
+        `user: ${subStates[j].user_address} supply: ${subStates[j].supply_token} borrowed: ${subStates[j].borrow_token}`
+      );
     }
   }
 
   const csvRows: OutputDataSchemaRow[] = newStates
     .filter((item) => item.supply_token > 0 || item.borrow_token > 0)
     .map((item) => {
-      console.log(
-        `borrow_token: ${item.borrow_token} , supply_token: ${item.supply_token}`
-      );
-
       return {
         protocol: "RhoMarkets",
         date: blocks.blockTimestamp,
