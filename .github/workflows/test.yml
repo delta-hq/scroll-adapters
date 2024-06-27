@@ -34,7 +34,8 @@ jobs:
           echo "::set-output name=changed_folders::$changed_folders"
 
       - name: Print changed folders
-        run: echo "Changed folders: ${{ steps.extract_folders.outputs.changed_folders }}"
+        run: |
+          echo "Changed folders: ${{ steps.extract_folders.outputs.changed_folders }}"
 
       # Loop through changed folders and run commands
       - name: Run commands in each folder
