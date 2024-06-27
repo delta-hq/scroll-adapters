@@ -9,7 +9,7 @@ export const enum PROTOCOLS {
 export const SUBGRAPH_URLS = {
   [CHAINS.SCROLL]: {
     [PROTOCOLS.RHO_MARKETS]: {
-      url: "https://api.studio.thegraph.com/query/79909/rho-scroll-staging/version/latest",
+      url: "https://api.studio.thegraph.com/query/79909/rho-markets-mainnet/version/latest",
     },
   },
 };
