@@ -34,7 +34,6 @@ jobs:
           cd adapters 
           cd $FOLDER_NAME
           npm install
-          npm run compile
-          cd ..
-          npm install
-          npm run start $FOLDER_NAME
+          tsc
+          npm run start
+          

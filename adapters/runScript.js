@@ -36,7 +36,7 @@ const readBlocksFromCSV = async (filePath) => {
 
   await new Promise((resolve, reject) => {
     fs.createReadStream(filePath)
-      .pipe(csv({ separator: '\t' })) // Specify the separator as '\t' for TSV files
+      .pipe(csv({ separator: ',' }))
       .on('data', (row) => {
         const blockNumber = parseInt(row.number, 10);
         const blockTimestamp = parseInt(row.block_timestamp, 10);
@@ -55,7 +55,7 @@ const readBlocksFromCSV = async (filePath) => {
   return blocks;
 };
 
-readBlocksFromCSV('block_numbers.tsv')
+readBlocksFromCSV(path.join(folderPath, 'hourly_blocks.csv'))
 .then(async (blocks) => {
   const allCsvRows = []; // Array to accumulate CSV rows for all blocks
   const batchSize = 10; // Size of batch to trigger writing to the file
