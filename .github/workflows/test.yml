@@ -6,7 +6,7 @@ on:
       - '**/'  # Listen for changes in any directory
 
 jobs:
-  test:
+  test-adapters:
     runs-on: ubuntu-latest
     env:
       FOLDER_NAME: ""
@@ -14,23 +14,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      # Get changed files in the adapters folder
+      - name: Get changed files in adapters folder
+        id: changed_files_adapters
+        uses: Ana06/get-changed-files@v2.1.0
         with:
-          ref: main  # Checkout the main branch
+          filter: 'adapters/**/*'
 
-      # Get changed files from the PR
-      - name: Get changed files
-        id: changed_files
-        run: |
-          git fetch origin ${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}
-          git diff --name-only origin/${{ github.base_ref }} ${{ github.head_ref }} > changed_files.txt
-          echo "::set-output name=changed_files::$(cat changed_files.txt)"
-
-      # Extract and process changed folders
+      # Extract unique folder names from changed files
       - name: Extract changed folders
         id: extract_folders
         run: |
-          # Extract unique folder names
-          changed_folders=$(awk -F/ '{print $2}' changed_files.txt | sort -u)
+          # Extract unique folder names from changed files
+          changed_folders=$(echo "${{ steps.changed_files_adapters.outputs.files }}" | awk -F/ '{print $2}' | sort -u)
           echo "::set-output name=changed_folders::$changed_folders"
 
       - name: Print changed folders
@@ -44,7 +41,7 @@ jobs:
             cd adapters/$folder
             npm install
             npm run compile
-            cd ../..
+            cd ../../
             npm install
             npm run start $folder
           done
