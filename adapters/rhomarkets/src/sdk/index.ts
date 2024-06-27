@@ -140,7 +140,7 @@ export const readBlocksFromCSV = async (
 
   await new Promise<void>((resolve, reject) => {
     fs.createReadStream(filePath)
-      .pipe(csv({ separator: "\t" })) // Specify the separator as '\t' for TSV files
+      .pipe(csv({ separator: "," }))
       .on("data", (row) => {
         const blockNumber = parseInt(row.number, 10);
         const blockTimestamp = parseInt(row.block_timestamp, 10);
