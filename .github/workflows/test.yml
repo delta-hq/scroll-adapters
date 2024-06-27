@@ -10,16 +10,21 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FOLDER_NAME: ""
+
     steps:
-      - uses: actions/checkout@v2
-      
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: main  # Checkout the main branch
+
       # Get changed files from the PR
       - name: Get changed files
         id: changed_files
         run: |
-          git diff --name-only ${{ github.event.before }} ${{ github.event.after }} > changed_files.txt
+          git fetch origin ${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}
+          git diff --name-only origin/${{ github.base_ref }} ${{ github.head_ref }} > changed_files.txt
           echo "::set-output name=changed_files::$(cat changed_files.txt)"
-      
+
       # Extract and process changed folders
       - name: Extract changed folders
         id: extract_folders
@@ -27,19 +32,18 @@ jobs:
           # Extract unique folder names
           changed_folders=$(awk -F/ '{print $2}' changed_files.txt | sort -u)
           echo "::set-output name=changed_folders::$changed_folders"
-      
-      - name: Print changed folders
-        run: |
-          echo "Changed folders: ${{ steps.extract_folders.outputs.changed_folders }}"
 
-      # Loop through changed folders
+      - name: Print changed folders
+        run: echo "Changed folders: ${{ steps.extract_folders.outputs.changed_folders }}"
+
+      # Loop through changed folders and run commands
       - name: Run commands in each folder
         run: |
           for folder in ${{ steps.extract_folders.outputs.changed_folders }}; do
             cd adapters/$folder
             npm install
             npm run compile
-            cd ../../
+            cd ../..
             npm install
             npm run start $folder
           done
