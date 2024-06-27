@@ -9,14 +9,14 @@ export const enum PROTOCOLS {
 export const SUBGRAPH_URLS = {
   [CHAINS.SCROLL]: {
     [PROTOCOLS.LAYERBANK]: {
-      url: "https://api.goldsky.com/api/public/project_clwadadu5rddf01xa3m0m8ep0/subgraphs/layerbank_scroll/1.0.0/gn",
+      url: "https://api.goldsky.com/api/public/project_clwadadu5rddf01xa3m0m8ep0/subgraphs/layerbank-scroll/1.0.0/gn",
     },
   },
 };
 
 export const RPC_URLS = {
   [CHAINS.SCROLL]:
-    "https://scroll-mainnet.blastapi.io/cf50a7c9-e512-45ac-ae1d-d319f1a34f06",
+    "https://scroll.drpc.org",
 };
 
 export const WETH_ADDRESS = {

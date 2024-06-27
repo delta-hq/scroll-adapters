@@ -5,8 +5,6 @@ import path from "path";
 
 const filePath = path.join(process.cwd(), "hourly_blocks.csv");
 
-console.log("filePath ", filePath);
-
 readBlocksFromCSV(filePath)
   .then(async (blocks: any[]) => {
     console.log(blocks);

@@ -52,7 +52,7 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
   console.log(`Block: ${block}`);
   console.log("States: ", states.length);
 
-  await updateBorrowBalances(states);
+  await updateBorrowBalances(states, BigInt(block));
 
   states.forEach((state) => {
     const marketInfo = marketInfos.find(
