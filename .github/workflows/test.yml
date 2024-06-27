@@ -6,38 +6,31 @@ on:
       - '**/'  # Listen for changes in any directory
 
 jobs:
-  test:
+  test-adapters:
     runs-on: ubuntu-latest
     env:
       FOLDER_NAME: ""
     steps:
       - uses: actions/checkout@v2.1.0
-      - name: Get changed files
-        id: changed_files
-        uses: jitterbit/get-changed-files@v1
-        with:
-          format: space-delimited
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract folder names
+      
+      # Extract and process changed folders
+      - name: Get changed folders
+        id: changed_folders
         run: |
-          added="${{ steps.changed_files.outputs.added }}"
-          edited="${{ steps.changed_files.outputs.edited }}"
-          # Combine added and edited folders
-          all_folders=$(echo "$added $edited" | awk -F/ '{print $2}' | sort -u)
-          echo "FOLDER_NAME=$all_folders" >> $GITHUB_ENV
-      - name: Print folder name
+          changed_folders=$(git diff --name-only HEAD^ HEAD | awk -F/ '{print $2}' | sort -u)
+          echo "::set-output name=changed_folders::$changed_folders"
+      
+      - name: Print changed folders
+        run: echo "Changed folders: ${{ steps.changed_folders.outputs.changed_folders }}"
+
+      # Loop through changed folders
+      - name: Run commands in each folder
         run: |
-          echo "Folder name(s): $FOLDER_NAME"
-      - name: Checkout PR
-        uses: actions/checkout@v2.1.0
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Run command from protocol folder
-        run: |
-          cd adapters 
-          cd $FOLDER_NAME
-          npm install
-          npm run compile
-          cd ..
-          npm install
-          npm run start $FOLDER_NAME
+          for folder in ${{ steps.changed_folders.outputs.changed_folders }}; do
+            cd adapters/$folder
+            npm install
+            npm run compile
+            cd ../..
+            npm install
+            npm run start $folder
+          done
