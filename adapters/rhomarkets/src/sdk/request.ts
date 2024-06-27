@@ -21,12 +21,11 @@ interface GraphQLResponse {
 export async function fetchSubgraphData(
   limit: number,
   lastId: string,
-  blockNumber: number,
   url: string
 ) {
   const query = `
       query MyQuery {
-        accounts(block: {number: ${blockNumber}}, first: ${limit}, where: { id_gt: "${lastId}" }, orderBy: id) {
+        accounts(first: ${limit}, where: { id_gt: "${lastId}" }, orderBy: id) {
           id
           tokens {
             cTokenBalance
@@ -80,7 +79,7 @@ export async function fetchGraphQLData(
 
   while (moreDataAvailable) {
     const { accounts: batchData, lastId: currentLastId } =
-      await fetchSubgraphData(totalLimit, lastId, blockNumber, url);
+      await fetchSubgraphData(totalLimit, lastId, url);
 
     lastId = currentLastId;
     allData = allData.concat(batchData);

@@ -75,6 +75,7 @@ export const getMarketInfos = async (
       functionName: "symbol",
     })) as any,
   });
+  
 
   const exchangeRateResults = await publicClient.multicall({
     contracts: markets.map((m) => ({

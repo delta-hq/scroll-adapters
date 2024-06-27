@@ -109,16 +109,6 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
           10n ** 18n,
         marketsMapping[subStates[j].market].decimals
       );
-
-      if (
-        subStates[j].user_address.toLowerCase() ===
-        "0x5fa5fbe3365d4317fbaa6df9b64f2262efdc771e".toLowerCase()
-      ) {
-        console.log(
-          "marketsMapping[subStates[j].market].decimals ",
-          marketsMapping[subStates[j].market].decimals
-        );
-      }
     }
   }
 
