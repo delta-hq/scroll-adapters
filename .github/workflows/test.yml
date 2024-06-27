@@ -12,19 +12,22 @@ jobs:
       FOLDER_NAME: ""
     steps:
       - uses: actions/checkout@v2.1.0
-      - uses: jitterbit/get-changed-files@v1
-        id: abc
+      - name: Get changed files
+        id: changed_files
+        uses: jitterbit/get-changed-files@v1
         with:
           format: space-delimited
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract folder name
+      - name: Extract folder names
         run: |
-          added="${{ steps.abc.outputs.added }}"
-          folder=$(echo "$added" | awk -F/ '{print $2}' | sort -u)
-          echo "FOLDER_NAME=$folder" >> $GITHUB_ENV
+          added="${{ steps.changed_files.outputs.added }}"
+          edited="${{ steps.changed_files.outputs.edited }}"
+          # Combine added and edited folders
+          all_folders=$(echo "$added $edited" | awk -F/ '{print $2}' | sort -u)
+          echo "FOLDER_NAME=$all_folders" >> $GITHUB_ENV
       - name: Print folder name
         run: |
-          echo "Folder name: $FOLDER_NAME"
+          echo "Folder name(s): $FOLDER_NAME"
       - name: Checkout PR
         uses: actions/checkout@v2.1.0
         with:
