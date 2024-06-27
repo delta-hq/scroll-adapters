@@ -16,7 +16,7 @@ export const SUBGRAPH_URLS = {
 
 export const RPC_URLS = {
   [CHAINS.SCROLL]:
-    "https://lb.drpc.org/ogrpc?network=scroll&dkey=AsAqLq8Jh0TEmrGYHeFdy6WougfZC9IR75DXivLNMzUy",
+    "https://scroll-mainnet.blastapi.io/cf50a7c9-e512-45ac-ae1d-d319f1a34f06",
 };
 
 export const WETH_ADDRESS = {
