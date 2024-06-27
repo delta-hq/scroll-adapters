@@ -1,4 +1,4 @@
-// runScript.js
+// testScript.js
 const fs = require('fs');
 const path = require('path');
 
@@ -30,13 +30,11 @@ if (!fs.existsSync(indexPath)) {
 const { getUserTVLByBlock } = require(indexPath);
 
 // Call the getUserTVLByBlock function with desired arguments
-const result = getUserTVLByBlock({
-    blockTimestamp: 1711023841,
-    blockNumber: 3041467
+getUserTVLByBlock({
+  blockTimestamp: 1711023841,
+  blockNumber: 3041467
 }).then((result) => {
-    if(!result.length){
-      throw new Error("Empty result")
-    }
+  if(!result.length){
+    throw new Error("Empty result")
+  }
 });
-
-
