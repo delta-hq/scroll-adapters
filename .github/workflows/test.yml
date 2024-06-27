@@ -6,35 +6,42 @@ on:
       - '**/'  # Listen for changes in any directory
 
 jobs:
-  test:
+  test-adapters:
     runs-on: ubuntu-latest
     env:
       FOLDER_NAME: ""
+
     steps:
-      - uses: actions/checkout@v2.1.0
-      - uses: jitterbit/get-changed-files@v1
-        id: abc
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Get changed files in the adapters folder
+      - name: Get changed files in adapters folder
+        id: changed_files_adapters
+        uses: Ana06/get-changed-files@v2.1.0
         with:
-          format: space-delimited
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract folder name
+          filter: 'adapters/**/*'
+
+      # Extract unique folder names from changed files
+      - name: Extract changed folders
+        id: extract_folders
         run: |
-          added="${{ steps.abc.outputs.added }}"
-          folder=$(echo "$added" | awk -F/ '{print $2}' | sort -u)
-          echo "FOLDER_NAME=$folder" >> $GITHUB_ENV
-      - name: Print folder name
+          # Extract unique folder names from changed files
+          changed_folders=$(echo "${{ steps.changed_files_adapters.outputs.files }}" | awk -F/ '{print $2}' | sort -u)
+          echo "::set-output name=changed_folders::$changed_folders"
+
+      - name: Print changed folders
         run: |
-          echo "Folder name: $FOLDER_NAME"
-      - name: Checkout PR
-        uses: actions/checkout@v2.1.0
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Run command from protocol folder
+          echo "Changed folders: ${{ steps.extract_folders.outputs.changed_folders }}"
+
+      # Loop through changed folders and run commands
+      - name: Run commands in each folder
         run: |
-          cd adapters 
-          cd $FOLDER_NAME
-          npm install
-          npm run compile
-          cd ..
-          npm install
-          npm run start $FOLDER_NAME
+          for folder in ${{ steps.extract_folders.outputs.changed_folders }}; do
+            cd adapters/$folder
+            npm install
+            npm run compile
+            cd ../../
+            npm install
+            npm run start $folder
+          done
