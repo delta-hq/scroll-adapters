@@ -21,7 +21,8 @@ jobs:
           echo "::set-output name=changed_folders::$changed_folders"
       
       - name: Print changed folders
-        run: echo "Changed folders: ${{ steps.changed_folders.outputs.changed_folders }}"
+        run: | 
+          echo "Changed folders: ${{ steps.changed_folders.outputs.changed_folders }}"
 
       # Loop through changed folders
       - name: Run commands in each folder
@@ -30,7 +31,7 @@ jobs:
             cd adapters/$folder
             npm install
             npm run compile
-            cd ../../
+            cd ..
             npm install
             npm run start $folder
           done
