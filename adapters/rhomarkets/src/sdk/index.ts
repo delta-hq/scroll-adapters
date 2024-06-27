@@ -39,11 +39,6 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
     "0x8a67AB98A291d1AEA2E1eB0a79ae4ab7f2D76041"
   );
 
-  const newStates: any[] = protocalInfos.filter(
-    (x) =>
-      (x.borrow_token > 0 || x.supply_token > 0) && x.market && x.user_address
-  );
-
   const marketsMapping: any = {};
   for (let marketInfo of marketInfos) {
     marketsMapping[marketInfo.address] = {
@@ -58,11 +53,13 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
     transport: http(RPC_URLS[CHAINS.SCROLL]),
   });
 
-  console.log(`Will update all borrow balances for ${newStates.length} states`);
-  for (var i = 0; i < newStates.length; i += 1000) {
+  console.log(
+    `Will update all borrow balances for ${protocalInfos.length} states`
+  );
+  for (var i = 0; i < protocalInfos.length; i += 1000) {
     const start = i;
     const end = i + 1000;
-    var subStates = newStates.slice(start, end);
+    var subStates = protocalInfos.slice(start, end);
     console.log(`Updating borrow balances for ${start} - ${end}`);
 
     let borrowBalanceResults = await publicClient.multicall({
@@ -98,19 +95,28 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
     });
 
     for (var j = 0; j < subStates.length; j++) {
-      subStates[j].borrow_token = formatUnits(
-        (borrowBalanceResults[j]?.result as bigint) || 0n,
-        subStates[j].decimals
+      subStates[j].borrow_token = Number(
+        formatUnits(
+          (borrowBalanceResults[j]?.result as bigint) || 0n,
+          marketsMapping[subStates[j].market].decimals
+        )
       );
 
-      subStates[j].supply_token = formatUnits(
-        (((supplyBalanceResults[j]?.result as bigint) || 0n) *
-          marketsMapping[subStates[j].market].exchangeRate) /
-          10n ** 18n,
-        marketsMapping[subStates[j].market].decimals
+      subStates[j].supply_token = Number(
+        formatUnits(
+          (((supplyBalanceResults[j]?.result as bigint) || 0n) *
+            marketsMapping[subStates[j].market].exchangeRate) /
+            10n ** 18n,
+          marketsMapping[subStates[j].market].decimals
+        )
       );
     }
   }
+
+  const newStates: any[] = protocalInfos.filter(
+    (x) =>
+      (x.borrow_token > 0 || x.supply_token > 0) && x.market && x.user_address
+  );
 
   const csvRows: OutputDataSchemaRow[] = newStates.map((item) => {
     return {
