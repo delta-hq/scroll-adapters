@@ -30,7 +30,7 @@ jobs:
             cd adapters/$folder
             npm install
             npm run compile
-            cd ../..
+            cd ../../
             npm install
             npm run start $folder
           done
