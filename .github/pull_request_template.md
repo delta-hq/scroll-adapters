@@ -1,15 +1,22 @@
-## Title: 
-<!--please follow this pattern for PR title "protocol_name : protocol_category : other comments". Example - "uniswap: dex : tvl by user"-->
+## Protocol Checklist
+
+Welcome! Thank you for submitting a PR with your protocol data. The [README](../README.md) should serve as a general guide for you. But please follow this checklist to ensure you have everything.
+
+### Check all boxes
+
+- [] Can you ...
+
 - [ ] Pattern for PR title "protocol_name : protocol_category : other comments". Example - "uniswap: dex : tvl by user"
 
 ## Checklist before requesting a review
+
 1. **index.ts file**
 
      - [ ] **Contains function**
 
             ```export const getUserTVLByBlock = async (blocks: BlockData) => {
                 const { blockNumber, blockTimestamp } = blocks
-                    //    Retrieve data using block number and timestamp
+                    // Retrieve data using block number and timestamp
                     // YOUR LOGIC HERE
                 
                 return csvRows
@@ -17,7 +24,7 @@
             };
             ``` 
     - [ ] **getUserTVLByBlock function takes input with this schema**
-        
+
             ``` 
                 interface BlockData {
                     blockNumber: number;
@@ -68,7 +75,7 @@
 
             ```
     - [ ] **has this code**
-           
+
             ```
             readBlocksFromCSV('hourly_blocks.csv').then(async (blocks: any[]) => {
             console.log(blocks);
