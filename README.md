@@ -31,7 +31,7 @@ Create your block file (`adapters/{protocol-name}/hourly_blocks.csv`) using **co
 Example:
 
 ```csv
-number,timestamp
+number,block_timestamp
 6916213,1719322991
 ```
 
@@ -70,8 +70,8 @@ Please note the following:
 | timestamp                 | Block timestamp                                                                        |
 | user_address              | The address of the user who's data is being recorded                                   |
 | market                    | The smart contract address of the market                                               |
-| token_address             | The smart contract address of the underlying token for this position                   |
-| token_symbol              | Symbol of the underlying token                                                         |
+| token_address (optional)  | The smart contract address of the underlying token for this position                   |
+| token_symbol (optional)   | Symbol of the underlying token                                                         |
 | supply_token              | Balance of the supplied amount in this market from `user_address`                      |
 | borrow_token              | balance of the borrowed amount in this market from `user_address`                      |
 | etl_timestamp             | Run timestamp of this row                                                              |
@@ -137,8 +137,8 @@ type OutputDataSchemaRow = {
   // User / Market data
   user_address: string;
   market: string;
-  token_address: string;
-  token_symbol: string;
+  token_address: string | null;
+  token_symbol: string | null;
 
   // Financial data
   supply_token: bigint;
