@@ -1,7 +1,5 @@
 import { CHAINS, PROTOCOLS } from "./sdk/config";
-import {
-  getAccountStatesForAddressByPoolAtBlock,
-} from "./sdk/subgraphDetails";
+import { getAccountStatesForAddressByPoolAtBlock } from "./sdk/subgraphDetails";
 
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
@@ -11,7 +9,6 @@ import fs from "fs";
 import csv from "csv-parser";
 import { write } from "fast-csv";
 import { getMarketInfos, updateBorrowBalances } from "./sdk/marketDetails";
-
 
 interface BlockData {
   blockNumber: number;
@@ -59,7 +56,7 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
     const marketInfo = marketInfos.find(
       (mi) => mi.underlyingAddress.toLowerCase() === state.token.toLowerCase()
     );
-  
+
     // Check if marketInfo is defined before pushing to csvRows
     if (marketInfo) {
       csvRows.push({
@@ -77,7 +74,7 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
     } else {
       console.warn(`Market info not found for token: ${state.token}`);
     }
-  });  
+  });
 
   return csvRows;
 };
