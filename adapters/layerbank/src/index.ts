@@ -22,7 +22,7 @@ interface BlockData {
 
 type OutputDataSchemaRow = {
   protocol: string;
-  date: number;
+  timestamp: number;
   block_number: number;
   user_address: string;
   market: string;
@@ -62,7 +62,7 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
     // Accumulate CSV row data
     csvRows.push({
       protocol: "Layerbank",
-      date: blocks.blockTimestamp,
+      timestamp: blocks.blockTimestamp,
       block_number: blocks.blockNumber,
       user_address: state.account,
       market: state.token,

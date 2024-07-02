@@ -8,7 +8,6 @@ import {
   extractChain,
   formatUnits,
   http,
-  zeroAddress,
 } from "viem";
 import { CHAINS, PROTOCOLS, RPC_URLS } from "./config";
 import ltokenAbi from "./abi/ltoken.abi";
@@ -18,14 +17,17 @@ export interface BlockData {
   blockTimestamp: number;
 }
 
-export type OutputDataSchemaRow = {
-  protocol: string;
-  date: number;
-  block_number: number;
+type OutputDataSchemaRow = {
   user_address: string;
   market: string;
-  supply_token: string | number;
-  borrow_token: string | number;
+  token_address: string;
+  token_symbol: string;
+  supply_token: bigint;
+  borrow_token: bigint;
+  block_number: number;
+  timestamp: number;
+  protocol: string;
+  etl_timestamp: number;
 };
 
 export const getUserTVLByBlock = async (blocks: BlockData) => {
@@ -36,7 +38,8 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
   );
 
   const marketInfos = await getMarketInfos(
-    "0x8a67AB98A291d1AEA2E1eB0a79ae4ab7f2D76041"
+    "0x8a67AB98A291d1AEA2E1eB0a79ae4ab7f2D76041",
+    BigInt(blocks.blockNumber)
   );
 
   const marketsMapping: any = {};
@@ -45,6 +48,8 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
       address: marketInfo.address,
       exchangeRate: marketInfo.exchangeRateStored,
       decimals: marketInfo.decimals,
+      tokenAddress: marketInfo.underlyingAddress,
+      tokenSymbol: marketInfo.underlyingSymbol,
     };
   }
 
@@ -113,23 +118,22 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
     }
   }
 
+  // filter out rows with no supply/borrow
   const newStates: any[] = protocalInfos.filter(
     (x) =>
       (x.borrow_token > 0 || x.supply_token > 0) && x.market && x.user_address
   );
 
-  const csvRows: OutputDataSchemaRow[] = newStates.map((item) => {
-    if (
-      item.user_address ===
-      "0xecb345270c14273c7374b38677f2d018e4ee2175".toLowerCase()
-    ) {
-      console.log("item ", item);
-    }
 
+  const csvRows: OutputDataSchemaRow[] = newStates.map((item) => {
+    const marketInfo = marketsMapping[item.market];
     return {
       protocol: "RhoMarkets",
-      date: blocks.blockTimestamp,
+      timestamp: blocks.blockTimestamp,
       block_number: blocks.blockNumber,
+      etl_timestamp: Math.floor(Date.now() / 1000),
+      token_address: marketInfo.tokenAddress,
+      token_symbol: marketInfo.tokenSymbol,
       user_address: item.user_address,
       market: item.market,
       supply_token: item.supply_token,
@@ -150,10 +154,10 @@ export const readBlocksFromCSV = async (
       .pipe(csv({ separator: "," }))
       .on("data", (row) => {
         const blockNumber = parseInt(row.number, 10);
-        const blockTimestamp = parseInt(row.block_timestamp, 10);
+        const blockTimestamp = parseInt(row.timestamp, 10);
 
-        if (!isNaN(blockNumber) && blockTimestamp) {
-          blocks.push({ blockNumber: blockNumber, blockTimestamp });
+        if (!isNaN(blockNumber) && !isNaN(blockTimestamp)) {
+          blocks.push({ blockNumber, blockTimestamp });
         }
       })
       .on("end", () => {
