@@ -119,6 +119,13 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
   );
 
   const csvRows: OutputDataSchemaRow[] = newStates.map((item) => {
+    if (
+      item.user_address ===
+      "0xecb345270c14273c7374b38677f2d018e4ee2175".toLowerCase()
+    ) {
+      console.log("item ", item);
+    }
+
     return {
       protocol: "RhoMarkets",
       date: blocks.blockTimestamp,

@@ -115,11 +115,6 @@ export async function fetchGraphQLData(
           })
         )
       )
-      .filter(
-        (item) =>
-          (item.supply_token > 0 || item.borrow_token > 0) &&
-          item.user_address !== zeroAddress
-      )
       .sort((a, b) => b.block_number - a.block_number);
 
     if (!offset && !limit) {
