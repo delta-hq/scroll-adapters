@@ -119,7 +119,6 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
       (x.borrow_token > 0 || x.supply_token > 0) && x.market && x.user_address
   );
 
-
   const csvRows: OutputDataSchemaRow[] = newStates.map((item) => {
     const marketInfo = marketsMapping[item.market];
     return {
