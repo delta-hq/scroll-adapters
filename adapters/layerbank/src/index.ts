@@ -12,7 +12,6 @@ import csv from "csv-parser";
 import { write } from "fast-csv";
 import { getMarketInfos, updateBorrowBalances } from "./sdk/marketDetails";
 
-
 interface BlockData {
   blockNumber: number;
   blockTimestamp: number;
