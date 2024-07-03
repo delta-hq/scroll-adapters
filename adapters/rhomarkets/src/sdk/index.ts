@@ -3,12 +3,7 @@ import csv from "csv-parser";
 import { scroll } from "viem/chains";
 import { fetchGraphQLData } from "./request";
 import { getMarketInfos } from "./marketDetails";
-import {
-  createPublicClient,
-  extractChain,
-  formatUnits,
-  http,
-} from "viem";
+import { createPublicClient, extractChain, formatUnits, http } from "viem";
 import { CHAINS, PROTOCOLS, RPC_URLS } from "./config";
 import ltokenAbi from "./abi/ltoken.abi";
 
@@ -123,7 +118,6 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
     (x) =>
       (x.borrow_token > 0 || x.supply_token > 0) && x.market && x.user_address
   );
-
 
   const csvRows: OutputDataSchemaRow[] = newStates.map((item) => {
     const marketInfo = marketsMapping[item.market];
