@@ -1,7 +1,6 @@
 import { CHAINS, PROTOCOLS } from "./sdk/config";
 import {
   getAccountStatesForAddressByPoolAtBlock,
-  getTimestampAtBlock,
 } from "./sdk/subgraphDetails";
 
 (BigInt.prototype as any).toJSON = function () {
@@ -12,8 +11,7 @@ import fs from "fs";
 import csv from "csv-parser";
 import { write } from "fast-csv";
 import { getMarketInfos, updateBorrowBalances } from "./sdk/marketDetails";
-import { bigMath } from "./sdk/abi/helpers";
-import { exit } from "process";
+
 
 interface BlockData {
   blockNumber: number;
@@ -21,13 +19,16 @@ interface BlockData {
 }
 
 type OutputDataSchemaRow = {
-  protocol: string;
-  date: number;
-  block_number: number;
   user_address: string;
   market: string;
+  token_address: string;
+  token_symbol: string;
   supply_token: bigint;
   borrow_token: bigint;
+  block_number: number;
+  timestamp: number;
+  protocol: string;
+  etl_timestamp: number;
 };
 
 export const getUserTVLByBlock = async (blocks: BlockData) => {
@@ -56,20 +57,27 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
 
   states.forEach((state) => {
     const marketInfo = marketInfos.find(
-      (mi) => mi.underlyingAddress == state.token.toLowerCase()
+      (mi) => mi.underlyingAddress.toLowerCase() === state.token.toLowerCase()
     );
-
-    // Accumulate CSV row data
-    csvRows.push({
-      protocol: "Layerbank",
-      date: blocks.blockTimestamp,
-      block_number: blocks.blockNumber,
-      user_address: state.account,
-      market: state.token,
-      supply_token: state.lentAmount,
-      borrow_token: state.borrowAmount,
-    });
-  });
+  
+    // Check if marketInfo is defined before pushing to csvRows
+    if (marketInfo) {
+      csvRows.push({
+        protocol: "Layerbank",
+        timestamp: blocks.blockTimestamp,
+        block_number: blocks.blockNumber,
+        etl_timestamp: Math.floor(Date.now() / 1000),
+        token_address: marketInfo.underlyingAddress,
+        token_symbol: marketInfo.underlyingSymbol,
+        user_address: state.account,
+        market: marketInfo.address,
+        supply_token: state.lentAmount,
+        borrow_token: state.borrowAmount,
+      });
+    } else {
+      console.warn(`Market info not found for token: ${state.token}`);
+    }
+  });  
 
   return csvRows;
 };
