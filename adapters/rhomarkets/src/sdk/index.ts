@@ -3,7 +3,12 @@ import csv from "csv-parser";
 import { scroll } from "viem/chains";
 import { fetchGraphQLData } from "./request";
 import { getMarketInfos } from "./marketDetails";
-import { createPublicClient, extractChain, formatUnits, http } from "viem";
+import {
+  createPublicClient,
+  extractChain,
+  formatUnits,
+  http,
+} from "viem";
 import { CHAINS, PROTOCOLS, RPC_URLS } from "./config";
 import ltokenAbi from "./abi/ltoken.abi";
 
