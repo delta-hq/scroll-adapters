@@ -56,7 +56,7 @@ Please note the following:
 - A standard function / entry point that inputs a block number and fetches all user level data at that block. (see below)
 - Accepts the standard input defined in `hourly_blocks.csv` (see more details below)
 - All values are in the underlying token amount (no lp or output tokens such as, cTokens, aTokens, uni pools)
-- Token amounts are normalized
+- Token amounts are normalized to the underlying token decimals (not raw values)
 - All strings/addresses are lowercase with no spaces
 
 > Note: **Expect multiple entries per user if the protocol has more than one token asset**
@@ -141,8 +141,8 @@ type OutputDataSchemaRow = {
   token_symbol: string;
 
   // Financial data
-  supply_token: bigint;
-  borrow_token: bigint;
+  supply_token: number;
+  borrow_token: number;
 
   // Metadata
   block_number: number;
