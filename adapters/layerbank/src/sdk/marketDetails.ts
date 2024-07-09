@@ -130,13 +130,7 @@ export const updateBorrowBalances = async (
   );
   const marketsByUnderlying: any = {};
   for (let marketInfo of marketInfos) {
-    marketsByUnderlying[marketInfo.underlyingAddress] = {
-      address: marketInfo.address,
-      exchangeRate: marketInfo.exchangeRateStored,
-      decimals: marketInfo.decimals,
-      tokenAddress: marketInfo.underlyingAddress,
-      tokenSymbol: marketInfo.underlyingSymbol,
-    };
+    marketsByUnderlying[marketInfo.underlyingAddress] = marketInfo;
   }
 
   const publicClient = createPublicClient({
@@ -147,9 +141,9 @@ export const updateBorrowBalances = async (
   states = states.filter((x) => x.borrowAmount > 0);
 
   console.log(`Will update all borrow balances for ${states.length} states`);
-  for (var i = 0; i < states.length; i += 500) {
+  for (var i = 0; i < states.length; i += 1000) {
     const start = i;
-    const end = i + 500;
+    const end = i + 1000;
     var subStates = states.slice(start, end);
     console.log(`Updating borrow balances for ${start} - ${end}`);
 
