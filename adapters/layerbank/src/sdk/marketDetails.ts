@@ -1,4 +1,4 @@
-import { createPublicClient, extractChain, http, getContract, formatUnits } from "viem";
+import { createPublicClient, extractChain, http, getContract } from "viem";
 import { CHAINS, RPC_URLS, WETH_ADDRESS } from "./config";
 import { scroll } from "viem/chains";
 import coreAbi from "./abi/core.abi";
@@ -7,7 +7,6 @@ import { AccountState } from "./subgraphDetails";
 
 export interface MarketInfo {
   address: string;
-  decimals: number;
   underlyingAddress: string;
   underlyingSymbol: string;
   underlyingDecimals: number;
@@ -90,14 +89,6 @@ export const getMarketInfos = async (
     blockNumber,
   });
 
-  const decimalResults = await publicClient.multicall({
-    contracts: markets.map((m) => ({
-      address: m.address,
-      abi: m.abi,
-      functionName: "decimals",
-    })) as any,
-  });
-
   const marketInfos: MarketInfo[] = [];
 
   for (let i = 0; i < markets.length; i++) {
@@ -106,7 +97,6 @@ export const getMarketInfos = async (
 
     marketInfos.push({
       address: marketAddress,
-      decimals: (decimalResults[i].result as number) || 0,
       underlyingAddress,
       underlyingSymbol: underlyingSymbolResults[i].result as any,
       underlyingDecimals: underlyingDecimalResults[i].result as any,
@@ -130,7 +120,7 @@ export const updateBorrowBalances = async (
   );
   const marketsByUnderlying: any = {};
   for (let marketInfo of marketInfos) {
-    marketsByUnderlying[marketInfo.underlyingAddress] = marketInfo;
+    marketsByUnderlying[marketInfo.underlyingAddress] = marketInfo.address;
   }
 
   const publicClient = createPublicClient({
@@ -141,9 +131,9 @@ export const updateBorrowBalances = async (
   states = states.filter((x) => x.borrowAmount > 0);
 
   console.log(`Will update all borrow balances for ${states.length} states`);
-  for (var i = 0; i < states.length; i += 1000) {
+  for (var i = 0; i < states.length; i += 500) {
     const start = i;
-    const end = i + 1000;
+    const end = i + 500;
     var subStates = states.slice(start, end);
     console.log(`Updating borrow balances for ${start} - ${end}`);
 
@@ -151,7 +141,7 @@ export const updateBorrowBalances = async (
       contracts: subStates
         .map((m) => [
           {
-            address: marketsByUnderlying[m.token].address,
+            address: marketsByUnderlying[m.token],
             abi: ltokenAbi,
             functionName: "borrowBalanceOf",
             args: [m.account],
@@ -162,11 +152,8 @@ export const updateBorrowBalances = async (
     });
 
     for (var j = 0; j < subStates.length; j++) {
-      subStates[j].borrowAmount = Number(
-        formatUnits(
-          (borrowBalanceResults[j]?.result as bigint) || 0n,
-          marketsByUnderlying[subStates[j].token].underlyingDecimals
-        )
+      subStates[j].borrowAmount = BigInt(
+        borrowBalanceResults[j].result?.toString() ?? 0
       );
     }
   }

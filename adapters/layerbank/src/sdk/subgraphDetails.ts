@@ -1,4 +1,4 @@
-import { formatUnits, createPublicClient, extractChain, http } from "viem";
+import { Account, createPublicClient, extractChain, http } from "viem";
 import { scroll } from "viem/chains";
 import {
   CHAINS,
@@ -17,8 +17,8 @@ export interface AccountState {
   id: string;
   account: string;
   token: string;
-  lentAmount: number;
-  borrowAmount: number;
+  lentAmount: bigint;
+  borrowAmount: bigint;
 }
 
 export const getAccountStatesForAddressByPoolAtBlock = async (
@@ -94,8 +94,8 @@ export const getAccountStatesForAddressByPoolAtBlock = async (
               ? WETH_ADDRESS[CHAINS.SCROLL].toLowerCase()
               : m.token
           ].toLowerCase(),
-        lentAmount: m.supplied,
-        borrowAmount: m.borrowed,
+        lentAmount: BigInt(m.supplied),
+        borrowAmount: BigInt(m.borrowed),
       }));
 
     // Push the filtered and mapped states into the states array
@@ -120,13 +120,8 @@ export const getAccountStatesForAddressByPoolAtBlock = async (
 
       return {
         ...state,
-        lentAmount: Number(
-          formatUnits(
-            ((BigInt(state.lentAmount) || 0n) * marketInfo.exchangeRateStored) /
-              10n ** 18n,
-            marketInfo.underlyingDecimals
-          )
-        )
+        lentAmount:
+          (state.lentAmount * marketInfo.exchangeRateStored) / BigInt(1e18),
       };
     })
     .filter((x) => x !== undefined) as AccountState[];
