@@ -26,8 +26,8 @@ type OutputDataSchemaRow = {
   token_address: string;
   underlying_decimals: number;
   token_symbol: string;
-  supply_token: bigint;
-  borrow_token: bigint;
+  supply_token: number;
+  borrow_token: number;
   block_number: number;
   timestamp: number;
   protocol: string;
@@ -60,7 +60,7 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
 
   states.forEach((state) => {
     const marketInfo = marketInfos.find(
-      (mi) => mi.underlyingAddress == state.token.toLowerCase()
+      (mi) => mi.underlyingAddress.toLowerCase() == state.token.toLowerCase()
     );
 
         // Check if marketInfo is defined before pushing to csvRows
