@@ -140,6 +140,8 @@ export const getTimestampAtBlock = async (blockNumber: number) => {
     transport: http(RPC_URLS[CHAINS.SCROLL]),
   });
 
+  console.log(RPC_URLS[CHAINS.SCROLL]);
+
   const block = await publicClient.getBlock({
     blockNumber: BigInt(blockNumber),
   });
