@@ -22,7 +22,6 @@ const RPCs = [
     "https://scroll.drpc.org",
     "https://scroll.blockpi.network/v1/rpc/public",
     "https://scroll-mainnet.chainstacklabs.com",
-
 ];
 const USDC_DECIMALS = 6;
 const RLP_DECIMALS = 6;

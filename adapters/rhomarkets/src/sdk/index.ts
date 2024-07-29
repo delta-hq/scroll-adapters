@@ -22,8 +22,8 @@ type OutputDataSchemaRow = {
   market: string;
   token_address: string;
   token_symbol: string;
-  supply_token: bigint;
-  borrow_token: bigint;
+  supply_token: number;
+  borrow_token: number;
   block_number: number;
   timestamp: number;
   protocol: string;
@@ -132,10 +132,10 @@ export const getUserTVLByBlock = async (blocks: BlockData) => {
       timestamp: blocks.blockTimestamp,
       block_number: blocks.blockNumber,
       etl_timestamp: Math.floor(Date.now() / 1000),
-      token_address: marketInfo.tokenAddress,
+      token_address: marketInfo.tokenAddress.toLowerCase(),
       token_symbol: marketInfo.tokenSymbol,
-      user_address: item.user_address,
-      market: item.market,
+      user_address: item.user_address.toLowerCase(),
+      market: item.market.toLowerCase(),
       supply_token: item.supply_token,
       borrow_token: item.borrow_token,
     };

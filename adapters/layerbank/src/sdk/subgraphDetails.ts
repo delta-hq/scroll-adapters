@@ -1,4 +1,4 @@
-import { Account, createPublicClient, extractChain, http } from "viem";
+import { formatUnits, createPublicClient, extractChain, http } from "viem";
 import { scroll } from "viem/chains";
 import {
   CHAINS,
@@ -17,8 +17,8 @@ export interface AccountState {
   id: string;
   account: string;
   token: string;
-  lentAmount: bigint;
-  borrowAmount: bigint;
+  lentAmount: number;
+  borrowAmount: number;
 }
 
 export const getAccountStatesForAddressByPoolAtBlock = async (
@@ -94,8 +94,8 @@ export const getAccountStatesForAddressByPoolAtBlock = async (
               ? WETH_ADDRESS[CHAINS.SCROLL].toLowerCase()
               : m.token
           ].toLowerCase(),
-        lentAmount: BigInt(m.supplied),
-        borrowAmount: BigInt(m.borrowed),
+        lentAmount: m.supplied,
+        borrowAmount: m.borrowed,
       }));
 
     // Push the filtered and mapped states into the states array
@@ -120,8 +120,13 @@ export const getAccountStatesForAddressByPoolAtBlock = async (
 
       return {
         ...state,
-        lentAmount:
-          (state.lentAmount * marketInfo.exchangeRateStored) / BigInt(1e18),
+        lentAmount: Number(
+          formatUnits(
+            ((BigInt(state.lentAmount) || 0n) * marketInfo.exchangeRateStored) /
+              10n ** 18n,
+            marketInfo.underlyingDecimals
+          )
+        )
       };
     })
     .filter((x) => x !== undefined) as AccountState[];
@@ -134,6 +139,8 @@ export const getTimestampAtBlock = async (blockNumber: number) => {
     chain: extractChain({ chains: [scroll], id: CHAINS.SCROLL }),
     transport: http(RPC_URLS[CHAINS.SCROLL]),
   });
+
+  console.log(RPC_URLS[CHAINS.SCROLL]);
 
   const block = await publicClient.getBlock({
     blockNumber: BigInt(blockNumber),

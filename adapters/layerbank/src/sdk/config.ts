@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 export const enum CHAINS {
   SCROLL = 534352,
 }
@@ -16,7 +18,7 @@ export const SUBGRAPH_URLS = {
 
 export const RPC_URLS = {
   [CHAINS.SCROLL]:
-    "https://scroll.drpc.org",
+    process.env.SCROLL_RPC_URL || "https://scroll.drpc.org",
 };
 
 export const WETH_ADDRESS = {

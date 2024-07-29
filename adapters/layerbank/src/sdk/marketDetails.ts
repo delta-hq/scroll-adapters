@@ -1,4 +1,4 @@
-import { createPublicClient, extractChain, http, getContract } from "viem";
+import { createPublicClient, extractChain, http, getContract, formatUnits } from "viem";
 import { CHAINS, RPC_URLS, WETH_ADDRESS } from "./config";
 import { scroll } from "viem/chains";
 import coreAbi from "./abi/core.abi";
@@ -9,6 +9,7 @@ export interface MarketInfo {
   address: string;
   underlyingAddress: string;
   underlyingSymbol: string;
+  underlyingDecimals: number;
   exchangeRateStored: bigint;
 }
 
@@ -71,6 +72,14 @@ export const getMarketInfos = async (
     })) as any,
   });
 
+  const underlyingDecimalResults = await publicClient.multicall({
+    contracts: underlyings.map((m) => ({
+      address: (m as any).address,
+      abi: (m as any).abi,
+      functionName: "decimals",
+    })) as any,
+  });
+
   const exchangeRateResults = await publicClient.multicall({
     contracts: markets.map((m) => ({
       address: m.address,
@@ -90,6 +99,7 @@ export const getMarketInfos = async (
       address: marketAddress,
       underlyingAddress,
       underlyingSymbol: underlyingSymbolResults[i].result as any,
+      underlyingDecimals: (underlyingDecimalResults[i].result as number) || 0,
       exchangeRateStored: BigInt(
         exchangeRateResults[i].status === "success"
           ? (exchangeRateResults[i].result as any)
@@ -110,7 +120,7 @@ export const updateBorrowBalances = async (
   );
   const marketsByUnderlying: any = {};
   for (let marketInfo of marketInfos) {
-    marketsByUnderlying[marketInfo.underlyingAddress] = marketInfo.address;
+    marketsByUnderlying[marketInfo.underlyingAddress] = marketInfo;
   }
 
   const publicClient = createPublicClient({
@@ -131,7 +141,7 @@ export const updateBorrowBalances = async (
       contracts: subStates
         .map((m) => [
           {
-            address: marketsByUnderlying[m.token],
+            address: marketsByUnderlying[m.token].address,
             abi: ltokenAbi,
             functionName: "borrowBalanceOf",
             args: [m.account],
@@ -142,8 +152,11 @@ export const updateBorrowBalances = async (
     });
 
     for (var j = 0; j < subStates.length; j++) {
-      subStates[j].borrowAmount = BigInt(
-        borrowBalanceResults[j].result?.toString() ?? 0
+      subStates[j].borrowAmount = Number(
+        formatUnits(
+          (borrowBalanceResults[j]?.result as bigint) || 0n,
+          marketsByUnderlying[subStates[j].token].underlyingDecimals
+        )
       );
     }
   }
