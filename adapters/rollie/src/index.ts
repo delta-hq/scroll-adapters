@@ -10,20 +10,19 @@ import { write } from 'fast-csv';
 import { pipeline as streamPipeline } from 'stream';
 import * as converter from "json-2-csv";
 
-console.log("converter", converter)
-
 
 import TradingVaultABI from "./abi/TradingVault";
-import {containsNodeError} from "viem/utils";
 import {resolve} from "path";
-import convert from "lodash/fp/convert";
+import Erc20Abi from "./abi/Erc20";
 const PairInfoAddress = "0xA852CE8B0BF3Bcd9191D6140a4627E7823c84848";
-const TradingVaultAddress = "0xA79E00e68549e91e5f0c27048F453b3D87ef6E3D"
+const TradingVaultAddress = "0xA79E00e68549e91e5f0c27048F453b3D87ef6E3D";
+const USDCAddress = "0x06eFdBFf2a14a7c8E15944D1F4A48F9F95F663A4";
 const SubgrapnUrl = "https://api.studio.thegraph.com/query/76203/rollie-finance/0.0.2";
 const RPCs = [
+    "https://scroll.drpc.org",
     "https://scroll.blockpi.network/v1/rpc/public",
     "https://scroll-mainnet.chainstacklabs.com",
-    "https://scroll.drpc.org"
+
 ];
 const USDC_DECIMALS = 6;
 const RLP_DECIMALS = 6;
@@ -91,6 +90,11 @@ const PairInfoContract = {
 const TradingVaultContract = {
     abi: TradingVaultABI as any,
     address: TradingVaultAddress as Address,
+}
+
+const USDCContract = {
+    abi: Erc20Abi as any,
+    address: USDCAddress as Address,
 }
 
 interface Pair {
@@ -189,6 +193,7 @@ interface User {
     closeCount: string
     amountGainRate: string
     staked: string,
+    user_balance_usdc: string,
 }
 
 async function getAllUser(lastRequest: User[], page: number = 0, block: BlockData): Promise<User[]> {
@@ -213,12 +218,18 @@ async function getAllUser(lastRequest: User[], page: number = 0, block: BlockDat
         const allUsers = [...lastRequest, ...users]
         console.log("Finish load users ...");
         // get all staked value
-        const calls = allUsers.map((item: User) => {
-            return {
+        const calls: any[] = [];
+        allUsers.forEach((item: User) => {
+            calls.push({
                 ...TradingVaultContract,
                 functionName: "balanceOf",
                 args: [item.id],
-            }
+            })
+            calls.push({
+                ...USDCContract,
+                functionName: "balanceOf",
+                args: [item.id],
+            })
         })
         calls.push({
             ...TradingVaultContract,
@@ -235,12 +246,17 @@ async function getAllUser(lastRequest: User[], page: number = 0, block: BlockDat
         const pps = result[result.length - 1];
         return allUsers.map((item, index) => {
             const staked = formatUnits(
-                (result[index] * pps ) / (10n ** BigInt(PPS_DECIMALS)),
+                (result[index * 2] * pps ) / (10n ** BigInt(PPS_DECIMALS)),
                 RLP_DECIMALS
             );
+            const user_balance_usdc = formatUnits(
+                (result[index * 2 + 1]) ,
+                USDC_DECIMALS
+            )
             return {
                 ...item,
                 staked,
+                user_balance_usdc
             }
         });
     }
@@ -294,6 +310,7 @@ interface Result {
     protocol_fees_usd: number;
     users_fees_usd: number;
     etl_timestamp: number;
+    user_balance_usdc: string;
 }
 
 // const endTime = Math.ceil(Date.now() / 1000);
@@ -419,6 +436,7 @@ function generateUserData(user: User, openOrders: OpenOrder[], closedOrders: Clo
             open_longs_usd: pairData.open_longs,
             protocol_fees_usd: pairData.protocol_fees,
             users_fees_usd: pairData.users_fees,
+            user_balance_usdc: user.user_balance_usdc,
         }
     })
 }
