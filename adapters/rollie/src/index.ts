@@ -396,7 +396,7 @@ function generateSinglePairData(openOrders: OpenOrder[], closedOrders: ClosedOrd
             open_shorts += BigInt(order.closeMargin) * BigInt(order.leverage);
         }
         protocol_fees += BigInt(order.closeFee) * 300n / 1000n;
-        users_fees += BigInt(order.closeFee) * 350n / 1000n + BigInt(order.rolloverFee) - BigInt(order.fundingFee);
+        users_fees += BigInt(order.closeFee) * 350n / 1000n + BigInt(order.rolloverFee);
     })
     return {
         open_shorts: Number(formatUnits(open_shorts, USDC_DECIMALS + LEVERAGE_DECIMALS)),
