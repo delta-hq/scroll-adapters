@@ -1,5 +1,11 @@
 import { createPublicClient, extractChain, http, getContract } from "viem";
-import { CHAINS, RPC_URLS } from "./config";
+import {
+  CHAINS,
+  FIXED_BLOCK_NUMS,
+  FIXED_EXCHANGE_RATE,
+  RPC_URLS,
+  rUSDC_ADDRESS,
+} from "./config";
 import { scroll } from "viem/chains";
 import coreAbi from "./abi/core.abi";
 import ltokenAbi from "./abi/ltoken.abi";
@@ -75,9 +81,8 @@ export const getMarketInfos = async (
       functionName: "symbol",
     })) as any,
   });
-  
 
-  const exchangeRateResults = await publicClient.multicall({
+  let exchangeRateResults = await publicClient.multicall({
     contracts: markets.map((m) => ({
       address: m.address,
       abi: m.abi,
@@ -92,16 +97,25 @@ export const getMarketInfos = async (
     const marketAddress = markets[i].address.toLowerCase();
     const underlyingAddress = underlyingAddresses[i];
 
+    // Fix rUSDC exchange rate issue that occurred between blocks 9664314 and 9671174
+    const fixedUSDCBlockData =
+      marketAddress.toLowerCase() === rUSDC_ADDRESS.toLowerCase() &&
+      blockNumber &&
+      blockNumber > FIXED_BLOCK_NUMS[0] &&
+      blockNumber < FIXED_BLOCK_NUMS[1];
+
     marketInfos.push({
       address: marketAddress,
       underlyingAddress,
       decimals: (decimalResults[i].result as number) || 0,
       underlyingSymbol: (underlyingSymbolResults[i].result as any) || "ETH",
-      exchangeRateStored: BigInt(
-        exchangeRateResults[i].status === "success"
-          ? (exchangeRateResults[i].result as any)
-          : 0
-      ),
+      exchangeRateStored: fixedUSDCBlockData
+        ? FIXED_EXCHANGE_RATE
+        : BigInt(
+            exchangeRateResults[i].status === "success"
+              ? (exchangeRateResults[i].result as any)
+              : 0
+          ),
     });
   }
 
