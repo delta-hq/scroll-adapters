@@ -19,7 +19,7 @@ export const mapVaultsToOutputRows = async (vaults: Vault[], assets: WrappedAsse
 
       const tokenInfo = await getTokenInfo(va.asset.originAssetAddress);
       outputs.push({
-        protocol: "Synonym Finance",
+        protocol: "SynonymFinance",
         timestamp: block.blockTimestamp,
         block_number: block.blockNumber,
         etl_timestamp: now,
