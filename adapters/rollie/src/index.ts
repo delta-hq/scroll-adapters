@@ -17,11 +17,13 @@ import Erc20Abi from "./abi/Erc20";
 const PairInfoAddress = "0xA852CE8B0BF3Bcd9191D6140a4627E7823c84848";
 const TradingVaultAddress = "0xA79E00e68549e91e5f0c27048F453b3D87ef6E3D";
 const USDCAddress = "0x06eFdBFf2a14a7c8E15944D1F4A48F9F95F663A4";
-const SubgrapnUrl = "https://api.studio.thegraph.com/query/76203/rollie-finance/0.0.2";
+const SubgrapnUrl = "https://api.studio.thegraph.com/query/54326/rollie-beta/version/latest";
 const RPCs = [
     "https://scroll.drpc.org",
     "https://scroll.blockpi.network/v1/rpc/public",
     "https://scroll-mainnet.chainstacklabs.com",
+    "https://rpc.scroll.io",
+    "https://rpc.ankr.com/scroll",
 ];
 const USDC_DECIMALS = 6;
 const RLP_DECIMALS = 6;
